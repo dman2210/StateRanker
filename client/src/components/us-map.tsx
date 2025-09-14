@@ -39,7 +39,7 @@ export function USMap({ stateRatings, onStateClick, selectedState }: USMapProps)
     }
     
     const rounded = Math.round(stateRating.averageRating);
-    return RATING_COLORS[rounded] || RATING_COLORS[0];
+    return RATING_COLORS[rounded as keyof typeof RATING_COLORS] || RATING_COLORS[0];
   };
 
   const getStateRating = (stateCode: string): string => {
