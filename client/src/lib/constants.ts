@@ -1,42 +1,50 @@
 export const US_STATES_MAP_GRID = [
-  // Row 1 (Alaska separate in top left)
+  // Row 1: Alaska alone
   [
     { state: "AK", span: 1 },
     { state: null, span: 11 }
   ],
-  // Row 2 (Northernmost states)
+  // Row 2: Northern border with Wisconsin separated
   [
-    { state: null, span: 1 },
+    { state: null, span: 5 },
+    { state: "WI", span: 1 },
+    { state: null, span: 3 },
+    { state: "VT", span: 1 },
+    { state: "ME", span: 1 },
+    { state: null, span: 1 }
+  ],
+  // Row 3: Main northern tier
+  [
     { state: "WA", span: 1 },
     { state: "ID", span: 1 },
     { state: "MT", span: 1 },
     { state: "ND", span: 1 },
     { state: "MN", span: 1 },
-    { state: null, span: 1 },
-    { state: "WI", span: 1 },
+    { state: "IL", span: 1 },
     { state: "MI", span: 1 },
     { state: null, span: 1 },
-    { state: "VT", span: 1 },
-    { state: "ME", span: 1 }
+    { state: "NY", span: 1 },
+    { state: "NH", span: 1 },
+    { state: "MA", span: 1 },
+    { state: null, span: 1 }
   ],
-  // Row 3 (Northern tier)
+  // Row 4: Second tier
   [
-    { state: null, span: 1 },
     { state: "OR", span: 1 },
     { state: "NV", span: 1 },
     { state: "WY", span: 1 },
     { state: "SD", span: 1 },
     { state: "IA", span: 1 },
-    { state: "IL", span: 1 },
     { state: "IN", span: 1 },
     { state: "OH", span: 1 },
-    { state: "NY", span: 1 },
-    { state: "NH", span: 1 },
-    { state: "MA", span: 1 }
+    { state: "PA", span: 1 },
+    { state: "NJ", span: 1 },
+    { state: "CT", span: 1 },
+    { state: "RI", span: 1 },
+    { state: null, span: 1 }
   ],
-  // Row 4 (Middle tier)
+  // Row 5: Middle tier
   [
-    { state: null, span: 1 },
     { state: "CA", span: 1 },
     { state: "UT", span: 1 },
     { state: "CO", span: 1 },
@@ -44,12 +52,12 @@ export const US_STATES_MAP_GRID = [
     { state: "MO", span: 1 },
     { state: "KY", span: 1 },
     { state: "WV", span: 1 },
-    { state: "PA", span: 1 },
-    { state: "NJ", span: 1 },
-    { state: "CT", span: 1 },
-    { state: "RI", span: 1 }
+    { state: "VA", span: 1 },
+    { state: "MD", span: 1 },
+    { state: "DE", span: 1 },
+    { state: null, span: 2 }
   ],
-  // Row 5 (Southern middle)
+  // Row 6: Southern middle
   [
     { state: null, span: 2 },
     { state: "AZ", span: 1 },
@@ -58,29 +66,27 @@ export const US_STATES_MAP_GRID = [
     { state: "AR", span: 1 },
     { state: "TN", span: 1 },
     { state: "NC", span: 1 },
-    { state: "VA", span: 1 },
-    { state: "MD", span: 1 },
-    { state: "DE", span: 1 },
-    { state: null, span: 1 }
+    { state: "SC", span: 1 },
+    { state: null, span: 3 }
   ],
-  // Row 6 (Southern states)
+  // Row 7: Southern states
   [
-    { state: null, span: 3 },
-    { state: "TX", span: 1 },
+    { state: null, span: 4 },
     { state: "OK", span: 1 },
     { state: "LA", span: 1 },
     { state: "MS", span: 1 },
     { state: "AL", span: 1 },
     { state: "GA", span: 1 },
-    { state: "SC", span: 1 },
-    { state: null, span: 2 }
+    { state: null, span: 3 }
   ],
-  // Row 7 (Florida and Hawaii)
+  // Row 8: Hawaii, Texas, Florida
   [
     { state: "HI", span: 1 },
-    { state: null, span: 7 },
+    { state: null, span: 1 },
+    { state: "TX", span: 1 },
+    { state: null, span: 6 },
     { state: "FL", span: 1 },
-    { state: null, span: 3 }
+    { state: null, span: 2 }
   ]
 ];
 
