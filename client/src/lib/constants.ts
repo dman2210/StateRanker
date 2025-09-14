@@ -44,10 +44,10 @@ export const US_STATES_MAP_GRID = [
     { state: "MO", span: 1 },
     { state: "KY", span: 1 },
     { state: "WV", span: 1 },
-    { state: "VA", span: 1 },
     { state: "PA", span: 1 },
     { state: "NJ", span: 1 },
-    { state: "CT", span: 1 }
+    { state: "CT", span: 1 },
+    { state: "RI", span: 1 }
   ],
   // Row 5 (Southern middle)
   [
@@ -58,10 +58,10 @@ export const US_STATES_MAP_GRID = [
     { state: "AR", span: 1 },
     { state: "TN", span: 1 },
     { state: "NC", span: 1 },
-    { state: "SC", span: 1 },
+    { state: "VA", span: 1 },
     { state: "MD", span: 1 },
     { state: "DE", span: 1 },
-    { state: "RI", span: 1 }
+    { state: null, span: 1 }
   ],
   // Row 6 (Southern states)
   [
@@ -72,7 +72,8 @@ export const US_STATES_MAP_GRID = [
     { state: "MS", span: 1 },
     { state: "AL", span: 1 },
     { state: "GA", span: 1 },
-    { state: null, span: 3 }
+    { state: "SC", span: 1 },
+    { state: null, span: 2 }
   ],
   // Row 7 (Florida and Hawaii)
   [
