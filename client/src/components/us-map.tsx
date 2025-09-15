@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { US_STATES_MAP_GRID, RATING_COLORS } from "@/lib/constants";
+import { useState } from "react";
+import { USAMap } from "@mirawision/usa-map-react";
+import { RATING_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface StateRating {
@@ -14,131 +15,90 @@ interface USMapProps {
   selectedState?: string | null;
 }
 
-interface TooltipState {
-  visible: boolean;
-  content: string;
-  rating: string;
-  x: number;
-  y: number;
-}
-
 export function USMap({ stateRatings, onStateClick, selectedState }: USMapProps) {
-  const [tooltip, setTooltip] = useState<TooltipState>({
-    visible: false,
-    content: "",
-    rating: "",
-    x: 0,
-    y: 0
-  });
-  const mapRef = useRef<HTMLDivElement>(null);
+  const [hoveredState, setHoveredState] = useState<string | null>(null);
 
+  // Convert CSS classes to hex colors for the SVG map
   const getRatingColor = (stateCode: string): string => {
     const stateRating = stateRatings.find(sr => sr.stateCode === stateCode);
     if (!stateRating || !stateRating.hasRatings) {
-      return RATING_COLORS[0]; // Not rated
+      return "#d1d5db"; // gray-300
     }
     
     const rounded = Math.round(stateRating.averageRating);
-    return RATING_COLORS[rounded as keyof typeof RATING_COLORS] || RATING_COLORS[0];
+    const colorMap: { [key: number]: string } = {
+      0: "#d1d5db", // gray-300 - Not rated
+      1: "#ef4444", // red-500
+      2: "#f87171", // red-400
+      3: "#f97316", // orange-500
+      4: "#fb923c", // orange-400
+      5: "#eab308", // yellow-500
+      6: "#facc15", // yellow-400
+      7: "#84cc16", // lime-500
+      8: "#a3e635", // lime-400
+      9: "#4ade80", // green-400
+      10: "#22c55e"  // green-500
+    };
+    return colorMap[rounded] || colorMap[0];
   };
 
-  const getStateRating = (stateCode: string): string => {
+  function getStateRating(stateCode: string): string {
     const stateRating = stateRatings.find(sr => sr.stateCode === stateCode);
     if (!stateRating || !stateRating.hasRatings) {
       return "Not rated yet";
     }
     return `Combined: ${stateRating.averageRating.toFixed(1)}/10`;
-  };
+  }
 
-  const handleMouseEnter = (stateCode: string, event: React.MouseEvent) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const mapRect = mapRef.current?.getBoundingClientRect();
-    
-    if (mapRect) {
-      setTooltip({
-        visible: true,
-        content: stateCode,
-        rating: getStateRating(stateCode),
-        x: rect.left - mapRect.left + rect.width / 2,
-        y: rect.top - mapRect.top - 8
-      });
-    }
-  };
+  function handleMouseOver(stateAbbreviation: string) {
+    setHoveredState(stateAbbreviation);
+  }
 
-  const handleMouseLeave = () => {
-    setTooltip(prev => ({ ...prev, visible: false }));
-  };
+  function handleMouseOut() {
+    setHoveredState(null);
+  }
 
-  const handleMouseMove = (event: React.MouseEvent) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const mapRect = mapRef.current?.getBoundingClientRect();
-    
-    if (mapRect && tooltip.visible) {
-      setTooltip(prev => ({
-        ...prev,
-        x: rect.left - mapRect.left + rect.width / 2,
-        y: rect.top - mapRect.top - 8
-      }));
-    }
-  };
+  // Create customization object for the map
+  const allStates = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+  ];
+
+  const stateCustomization = allStates.reduce((acc, state) => {
+    acc[state] = {
+      fill: getRatingColor(state),
+      stroke: selectedState === state ? "#3b82f6" : "#374151",
+      strokeWidth: selectedState === state ? 3 : 1,
+      onClick: () => onStateClick(state),
+      onHover: () => handleMouseOver(state),
+      onLeave: handleMouseOut
+    };
+    return acc;
+  }, {} as Record<string, any>);
 
   return (
-    <div ref={mapRef} className="relative">
-      <div className="grid grid-cols-12 gap-1 max-w-4xl mx-auto">
-        {US_STATES_MAP_GRID.map((row, rowIndex) => 
-          row.map((cell, cellIndex) => {
-            if (!cell.state) {
-              return (
-                <div 
-                  key={`${rowIndex}-${cellIndex}`} 
-                  className={`col-span-${cell.span}`}
-                />
-              );
-            }
-
-            const stateCode = cell.state;
-            const colorClass = getRatingColor(stateCode);
-            const isSelected = selectedState === stateCode;
-
-            return (
-              <div
-                key={`${rowIndex}-${cellIndex}`}
-                className={cn(
-                  `col-span-${cell.span}`,
-                  "p-2 rounded text-xs font-medium text-center cursor-pointer transition-all duration-200",
-                  "hover:scale-105 hover:shadow-md hover:z-10",
-                  colorClass,
-                  isSelected && "ring-2 ring-primary ring-offset-1",
-                  stateCode === "CA" && "text-white" // California has dark green background
-                )}
-                onClick={() => onStateClick(stateCode)}
-                onMouseEnter={(e) => handleMouseEnter(stateCode, e)}
-                onMouseLeave={handleMouseLeave}
-                onMouseMove={handleMouseMove}
-              >
-                {stateCode}
-              </div>
-            );
-          })
-        )}
+    <div className="relative w-full">
+      <div className="w-full max-w-4xl mx-auto">
+        <USAMap
+          customStates={stateCustomization}
+          mapSettings={{
+            width: "100%",
+            height: "500"
+          }}
+        />
       </div>
 
-      {/* Tooltip */}
-      <div
-        className={cn(
-          "absolute z-20 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none transition-opacity duration-200",
-          tooltip.visible ? "opacity-100" : "opacity-0"
-        )}
-        style={{
-          left: tooltip.x - 60, // Center the tooltip
-          top: tooltip.y - 80,
-          transform: "translateX(-50%)"
-        }}
-      >
-        <div className="font-medium">{tooltip.content}</div>
-        <div className="text-gray-300">{tooltip.rating}</div>
-        <div className="text-xs text-gray-400 mt-1">Click to rate</div>
-      </div>
+      {/* Simple tooltip using built-in tooltips from the library or minimal display */}
+      {hoveredState && (
+        <div className="fixed top-4 right-4 z-20 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm pointer-events-none">
+          <div className="font-medium">{hoveredState}</div>
+          <div className="text-gray-300">{getStateRating(hoveredState)}</div>
+          <div className="text-xs text-gray-400 mt-1">Click to rate</div>
+        </div>
+      )}
 
       {/* Rating Scale Legend */}
       <div className="flex items-center justify-center mt-6 space-x-6 text-sm">
