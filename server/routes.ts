@@ -1,11 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { FirestoreStorage } from "./firestore-storage";
+import { authenticateUser, optionalAuth, AuthenticatedRequest } from "./middleware/auth";
 import { insertCriterionSchema, insertRatingSchema, insertUserSchema } from "@shared/schema";
 
+const storage = new FirestoreStorage();
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // User routes
-  app.get("/api/users", async (req, res) => {
+  // User routes - authenticated
+  app.get("/api/users", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -14,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/:username", async (req, res) => {
+  app.get("/api/users/:username", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
       const user = await storage.getUserByUsername(req.params.username);
       if (!user) {
@@ -26,30 +29,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Criteria routes
-  app.get("/api/criteria", async (req, res) => {
+  // Criteria routes - user-specific
+  app.get("/api/criteria", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
-      const criteria = await storage.getAllCriteria();
+      const criteria = await storage.getCriteriaByUser(req.user!.uid);
       res.json(criteria);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch criteria" });
     }
   });
 
-  app.post("/api/criteria", async (req, res) => {
+  app.post("/api/criteria", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
-      const validatedData = insertCriterionSchema.parse(req.body);
-      const criterion = await storage.createCriterion(validatedData);
+      const validatedData = insertCriterionSchema.omit({ userId: true }).parse(req.body);
+      const criterion = await storage.createCriterion({
+        ...validatedData,
+        userId: req.user!.uid,
+      });
       res.status(201).json(criterion);
     } catch (error) {
       res.status(400).json({ error: "Invalid criterion data" });
     }
   });
 
-  app.put("/api/criteria/:id", async (req, res) => {
+  app.put("/api/criteria/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
-      const updates = insertCriterionSchema.partial().parse(req.body);
-      const criterion = await storage.updateCriterion(req.params.id, updates);
+      const updates = insertCriterionSchema.omit({ userId: true }).partial().parse(req.body);
+      const criterion = await storage.updateCriterion(req.params.id, {
+        ...updates,
+        userId: req.user!.uid,
+      });
       if (!criterion) {
         return res.status(404).json({ error: "Criterion not found" });
       }
@@ -59,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/criteria/:id", async (req, res) => {
+  app.delete("/api/criteria/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
       const deleted = await storage.deleteCriterion(req.params.id);
       if (!deleted) {
@@ -93,46 +102,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Ratings routes
-  app.get("/api/ratings", async (req, res) => {
+  // Ratings routes - user-specific
+  app.get("/api/ratings", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId, stateCode } = req.query;
-      
-      if (userId) {
-        const ratings = await storage.getRatingsByUser(userId as string);
-        return res.json(ratings);
-      }
+      const { stateCode } = req.query;
       
       if (stateCode) {
         const ratings = await storage.getRatingsByState(stateCode as string);
-        return res.json(ratings);
+        // Filter to only show the authenticated user's ratings
+        const userRatings = ratings.filter(r => r.userId === req.user!.uid);
+        return res.json(userRatings);
       }
       
-      const ratings = await storage.getAllRatings();
+      // Always return only the authenticated user's ratings
+      const ratings = await storage.getRatingsByUser(req.user!.uid);
       res.json(ratings);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch ratings" });
     }
   });
 
-  app.post("/api/ratings", async (req, res) => {
+  app.post("/api/ratings", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
-      const validatedData = insertRatingSchema.parse(req.body);
+      const validatedData = insertRatingSchema.omit({ userId: true }).parse(req.body);
+      const ratingData = {
+        ...validatedData,
+        userId: req.user!.uid,
+      };
       
       // Check if rating already exists for this user/state/criterion combination
       const existingRating = await storage.getRating(
-        validatedData.userId,
-        validatedData.stateCode,
-        validatedData.criterionId
+        ratingData.userId,
+        ratingData.stateCode,
+        ratingData.criterionId
       );
       
       let rating;
       if (existingRating) {
         // Update existing rating
-        rating = await storage.updateRating(existingRating.id, validatedData);
+        rating = await storage.updateRating(existingRating.id, ratingData);
       } else {
         // Create new rating
-        rating = await storage.createRating(validatedData);
+        rating = await storage.createRating(ratingData);
       }
       
       res.status(201).json(rating);
@@ -141,10 +152,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/ratings/:id", async (req, res) => {
+  app.put("/api/ratings/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
-      const updates = insertRatingSchema.partial().parse(req.body);
-      const rating = await storage.updateRating(req.params.id, updates);
+      const updates = insertRatingSchema.omit({ userId: true }).partial().parse(req.body);
+      const rating = await storage.updateRating(req.params.id, {
+        ...updates,
+        userId: req.user!.uid,
+      });
       if (!rating) {
         return res.status(404).json({ error: "Rating not found" });
       }
@@ -154,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/ratings/:id", async (req, res) => {
+  app.delete("/api/ratings/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
       const deleted = await storage.deleteRating(req.params.id);
       if (!deleted) {

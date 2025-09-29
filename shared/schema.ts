@@ -11,6 +11,7 @@ export const users = pgTable("users", {
 
 export const criteria = pgTable("criteria", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
   name: text("name").notNull(),
   weight: real("weight").notNull().default(1.0),
   color: text("color").notNull(),
@@ -39,6 +40,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 });
 
 export const insertCriterionSchema = createInsertSchema(criteria).pick({
+  userId: true,
   name: true,
   weight: true,
   color: true,
