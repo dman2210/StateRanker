@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Rater - Collaborative US States Rating App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#1976D2',
+                    secondary: '#DC004E',
+                    success: '#388E3C',
+                    warning: '#F57C00',
+                    error: '#D32F2F',
+                }
+            }
+        }
+    };
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .state-hover:hover { transform: scale(1.02); transition: transform 0.2s ease; }
+        .rating-scale { background: linear-gradient(90deg, #D32F2F 0%, #F57C00 25%, #FBC02D 50%, #689F38 75%, #388E3C 100%); }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marked-alt text-primary text-2xl mr-3"></i>
+                        <h1 class="text-xl font-semibold text-gray-900">State Rater</h1>
+                    </div>
+                </div>
+                
+                <nav class="hidden md:flex items-center space-x-8">
+                    <button class="flex items-center px-3 py-2 text-primary bg-blue-50 rounded-lg font-medium">
+                        <i class="fas fa-map mr-2"></i>
+                        Map View
+                    </button>
+                    <button class="flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 rounded-lg font-medium">
+                        <i class="fas fa-list mr-2"></i>
+                        List View
+                    </button>
+                    <button class="flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 rounded-lg font-medium">
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Analytics
+                    </button>
+                </nav>
+
+                <div class="flex items-center space-x-3">
+                    <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                    <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <div class="flex max-w-7xl mx-auto">
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-80 bg-white shadow-sm border-r border-gray-200 min-h-screen">
+            <div class="p-6">
+                <!-- View Toggle -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-900 mb-3">Rating View</h3>
+                    <div class="flex bg-gray-100 rounded-lg p-1">
+                        <button class="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md">
+                            Combined
+                        </button>
+                        <button class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                            <span data-bind="currentUser.name">You</span>
+                        </button>
+                        <button class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                            <span data-bind="partner.name">Wife</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rating Criteria -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-medium text-gray-900">Rating Criteria</h3>
+                        <button class="p-1.5 text-primary hover:bg-blue-50 rounded">
+                            <i class="fas fa-plus text-sm"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- @MAP: criteria.map(criterion => ( -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-primary rounded-full mr-3"></div>
+                                <span class="font-medium text-gray-900" data-bind="criterion.name">Cost of Living</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500" data-bind="criterion.weight">1x</span>
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-secondary rounded-full mr-3"></div>
+                                <span class="font-medium text-gray-900" data-bind="criterion.name">Climate</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500" data-bind="criterion.weight">1.5x</span>
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-success rounded-full mr-3"></div>
+                                <span class="font-medium text-gray-900" data-bind="criterion.name">Job Market</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500" data-bind="criterion.weight">2x</span>
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-warning rounded-full mr-3"></div>
+                                <span class="font-medium text-gray-900" data-bind="criterion.name">Culture & Entertainment</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500" data-bind="criterion.weight">1x</span>
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Rating Scale Legend -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-900 mb-3">Rating Scale</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">1-2</span>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                                <span class="text-sm text-gray-900">Poor</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">3-4</span>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-orange-500 rounded mr-2"></div>
+                                <span class="text-sm text-gray-900">Fair</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">5-6</span>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                                <span class="text-sm text-gray-900">Good</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">7-8</span>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-lime-500 rounded mr-2"></div>
+                                <span class="text-sm text-gray-900">Great</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">9-10</span>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                                <span class="text-sm text-gray-900">Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-gray-900 mb-3">Progress</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">States Rated</span>
+                            <span class="text-sm font-medium text-gray-900" data-bind="stats.ratedStates">23/50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Agreement Rate</span>
+                            <span class="text-sm font-medium text-success" data-bind="stats.agreement">78%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Top Rated</span>
+                            <span class="text-sm font-medium text-gray-900" data-bind="stats.topState">California</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 p-6">
+            <!-- Map Container -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">United States Rating Map</h2>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600">Filter:</span>
+                                <select class="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white">
+                                    <option>All Criteria</option>
+                                    <option>Cost of Living</option>
+                                    <option>Climate</option>
+                                    <option>Job Market</option>
+                                    <option>Culture & Entertainment</option>
+                                </select>
+                            </div>
+                            <button class="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                                <i class="fas fa-expand-arrows-alt mr-2"></i>
+                                Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- @FUNCTIONALITY: Interactive US map with state ratings visualization -->
+                <div class="p-6">
+                    <div class="relative">
+                        <!-- Simplified US Map Representation -->
+                        <div class="grid grid-cols-12 gap-1 max-w-4xl mx-auto">
+                            <!-- Row 1 (Alaska, Hawaii) -->
+                            <div class="col-span-2"></div>
+                            <div class="col-span-8"></div>
+                            <div class="col-span-2 space-y-1">
+                                <div class="state-hover bg-yellow-400 p-2 rounded text-xs font-medium text-center cursor-pointer" data-state="AK" data-rating="6.5">AK</div>
+                                <div class="state-hover bg-green-400 p-2 rounded text-xs font-medium text-center cursor-pointer" data-state="HI" data-rating="8.2">HI</div>
+                            </div>
+                            
+                            <!-- Row 2 (Northern States) -->
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="WA" data-rating="7.8">WA</div>
+                            <div class="state-hover bg-yellow-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="ID" data-rating="6.2">ID</div>
+                            <div class="state-hover bg-orange-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MT" data-rating="5.9">MT</div>
+                            <div class="state-hover bg-orange-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="ND" data-rating="4.1">ND</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MN" data-rating="0">MN</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="WI" data-rating="0">WI</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MI" data-rating="0">MI</div>
+                            <div class="state-hover bg-yellow-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NY" data-rating="6.8">NY</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="VT" data-rating="0">VT</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NH" data-rating="0">NH</div>
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="ME" data-rating="7.5">ME</div>
+                            <div></div>
+                            
+                            <!-- Row 3 -->
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="OR" data-rating="7.9">OR</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NV" data-rating="3.2">NV</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="WY" data-rating="0">WY</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="SD" data-rating="0">SD</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="IA" data-rating="0">IA</div>
+                            <div class="state-hover bg-yellow-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="IL" data-rating="6.1">IL</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="IN" data-rating="0">IN</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="OH" data-rating="0">OH</div>
+                            <div class="state-hover bg-yellow-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="PA" data-rating="6.4">PA</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NJ" data-rating="0">NJ</div>
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="CT" data-rating="7.1">CT</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="RI" data-rating="0">RI</div>
+                            
+                            <!-- Row 4 -->
+                            <div class="state-hover bg-green-500 p-3 rounded text-xs font-medium text-center cursor-pointer text-white" data-state="CA" data-rating="9.1">CA</div>
+                            <div class="state-hover bg-orange-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="UT" data-rating="5.7">UT</div>
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="CO" data-rating="8.3">CO</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NE" data-rating="3.8">NE</div>
+                            <div class="state-hover bg-yellow-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MO" data-rating="5.4">MO</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="KY" data-rating="0">KY</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="WV" data-rating="0">WV</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="VA" data-rating="0">VA</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MD" data-rating="0">MD</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="DE" data-rating="0">DE</div>
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MA" data-rating="8.0">MA</div>
+                            <div></div>
+                            
+                            <!-- Row 5 -->
+                            <div></div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="AZ" data-rating="4.5">AZ</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NM" data-rating="4.2">NM</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="KS" data-rating="3.1">KS</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="AR" data-rating="2.9">AR</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="TN" data-rating="0">TN</div>
+                            <div class="state-hover bg-lime-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="NC" data-rating="7.6">NC</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="SC" data-rating="0">SC</div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            
+                            <!-- Row 6 (Southern States) -->
+                            <div></div>
+                            <div></div>
+                            <div class="state-hover bg-yellow-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="TX" data-rating="6.7">TX</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="OK" data-rating="2.8">OK</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="LA" data-rating="3.5">LA</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="MS" data-rating="2.1">MS</div>
+                            <div class="state-hover bg-red-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="AL" data-rating="2.7">AL</div>
+                            <div class="state-hover bg-gray-300 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="GA" data-rating="0">GA</div>
+                            <div class="state-hover bg-green-400 p-3 rounded text-xs font-medium text-center cursor-pointer" data-state="FL" data-rating="8.4">FL</div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                        
+                        <!-- Hover Tooltip -->
+                        <div id="state-tooltip" class="absolute z-10 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-sm opacity-0 pointer-events-none transition-opacity">
+                            <div class="font-medium" id="tooltip-state">California</div>
+                            <div class="text-gray-300" id="tooltip-rating">Combined: 9.1/10</div>
+                            <div class="text-xs text-gray-400 mt-1">Click to rate</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Legend -->
+                    <div class="flex items-center justify-center mt-6 space-x-6 text-sm">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-gray-300 rounded mr-2"></div>
+                            <span class="text-gray-600">Not Rated</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-20 h-4 rating-scale rounded mr-2"></div>
+                            <span class="text-gray-600">1 (Poor) → 10 (Excellent)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Panel (shown when state is selected) -->
+            <!-- @STATE: selectedState:string = null -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200" id="rating-panel" style="display: none;">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-900 mr-3" id="selected-state-name" data-bind="selectedState.name">California</h3>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-sm font-medium rounded" id="selected-state-score" data-bind="selectedState.averageRating">9.1/10</span>
+                        </div>
+                        <button class="text-gray-400 hover:text-gray-600" onclick="closeRatingPanel()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Your Ratings -->
+                        <div>
+                            <h4 class="text-base font-semibold text-gray-900 mb-4">Your Ratings</h4>
+                            <!-- @MAP: criteria.map(criterion => ( -->
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Cost of Living</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-gray-300 hover:text-yellow-400"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-gray-300 hover:text-yellow-400"><i class="fas fa-star"></i></button>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="userRating.costOfLiving">8</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Climate</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="userRating.climate">10</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Job Market</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-gray-300 hover:text-yellow-400"><i class="fas fa-star"></i></button>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="userRating.jobMarket">9</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Culture & Entertainment</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-yellow-400 hover:text-yellow-500"><i class="fas fa-star"></i></button>
+                                            <button class="w-6 h-6 text-gray-300 hover:text-yellow-400"><i class="fas fa-star"></i></button>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="userRating.culture">9</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        
+                        <!-- Wife's Ratings -->
+                        <div>
+                            <h4 class="text-base font-semibold text-gray-900 mb-4">Wife's Ratings</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Cost of Living</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-gray-300"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-gray-300"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-gray-300"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-gray-300"><i class="fas fa-star"></i></span>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="wifeRating.costOfLiving">6</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Climate</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-gray-300"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-gray-300"><i class="fas fa-star"></i></span>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="wifeRating.climate">8</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Job Market</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="wifeRating.jobMarket">10</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Culture & Entertainment</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex space-x-1">
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                            <span class="w-6 h-6 text-yellow-400"><i class="fas fa-star"></i></span>
+                                        </div>
+                                        <span class="text-sm text-gray-600 w-6" data-bind="wifeRating.culture">10</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Combined Rating Summary -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h5 class="text-lg font-semibold text-gray-900">Combined Rating</h5>
+                                    <p class="text-sm text-gray-600">Weighted average of both ratings</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-3xl font-bold text-green-600" data-bind="combinedRating">9.1</div>
+                                    <div class="text-sm text-gray-600">out of 10</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Add Note
+                        </button>
+                        <button class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-blue-700">
+                            Save Ratings
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions Bar -->
+            <div class="fixed bottom-6 right-6 flex space-x-3">
+                <button class="flex items-center px-4 py-2 bg-white shadow-lg border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    View Rankings
+                </button>
+                <button class="flex items-center px-4 py-2 bg-primary shadow-lg rounded-full text-sm font-medium text-white hover:bg-blue-700">
+                    <i class="fas fa-download mr-2"></i>
+                    Export Data
+                </button>
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+
+    <script>
+        // TODO: Implement full interactive map with actual mapping library (e.g., D3.js, Leaflet)
+        // TODO: Implement localStorage for persistence
+        // TODO: Implement state management for ratings
+        // TODO: Add real-time collaboration features
+        
+        (function() {
+            // Map interaction functionality
+            const stateElements = document.querySelectorAll('[data-state]');
+            const tooltip = document.getElementById('state-tooltip');
+            const ratingPanel = document.getElementById('rating-panel');
+            
+            // State hover effects and tooltip
+            stateElements.forEach(state => {
+                state.addEventListener('mouseenter', function(e) {
+                    const stateName = this.getAttribute('data-state');
+                    const rating = this.getAttribute('data-rating');
+                    
+                    document.getElementById('tooltip-state').textContent = stateName;
+                    document.getElementById('tooltip-rating').textContent = 
+                        rating === '0' ? 'Not rated yet' : `Combined: ${rating}/10`;
+                    
+                    tooltip.style.opacity = '1';
+                    updateTooltipPosition(e);
+                });
+                
+                state.addEventListener('mouseleave', function() {
+                    tooltip.style.opacity = '0';
+                });
+                
+                state.addEventListener('mousemove', updateTooltipPosition);
+                
+                state.addEventListener('click', function() {
+                    const stateName = this.getAttribute('data-state');
+                    showRatingPanel(stateName);
+                });
+            });
+            
+            function updateTooltipPosition(e) {
+                const rect = e.target.getBoundingClientRect();
+                tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+            }
+            
+            function showRatingPanel(stateName) {
+                // TODO: Populate panel with actual state data
+                ratingPanel.style.display = 'block';
+                ratingPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            
+            window.closeRatingPanel = function() {
+                ratingPanel.style.display = 'none';
+            };
+            
+            // Star rating interaction
+            const starRatings = document.querySelectorAll('.flex.space-x-1');
+            starRatings.forEach(rating => {
+                if (rating.querySelector('button')) { // Only interactive star ratings
+                    const stars = rating.querySelectorAll('button');
+                    stars.forEach((star, index) => {
+                        star.addEventListener('click', function() {
+                            // TODO: Implement rating save functionality
+                            for (let i = 0; i <= index; i++) {
+                                stars[i].classList.remove('text-gray-300');
+                                stars[i].classList.add('text-yellow-400');
+                            }
+                            for (let i = index + 1; i < stars.length; i++) {
+                                stars[i].classList.remove('text-yellow-400');
+                                stars[i].classList.add('text-gray-300');
+                            }
+                        });
+                        
+                        star.addEventListener('mouseenter', function() {
+                            for (let i = 0; i <= index; i++) {
+                                stars[i].classList.add('text-yellow-500');
+                            }
+                        });
+                        
+                        star.addEventListener('mouseleave', function() {
+                            stars.forEach(s => s.classList.remove('text-yellow-500'));
+                        });
+                    });
+                }
+            });
+            
+            // View toggle functionality
+            const viewToggleButtons = document.querySelectorAll('.flex.bg-gray-100 button');
+            viewToggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // TODO: Implement view switching logic
+                    viewToggleButtons.forEach(btn => {
+                        btn.classList.remove('bg-primary', 'text-white');
+                        btn.classList.add('text-gray-600');
+                    });
+                    this.classList.add('bg-primary', 'text-white');
+                    this.classList.remove('text-gray-600');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Rating App - Rate US States with Custom Criteria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'inter': ['Inter', 'sans-serif'],
+                },
+                colors: {
+                    primary: '#1976D2',
+                    secondary: '#424242',
+                    excellent: '#4CAF50',
+                    good: '#8BC34A',
+                    average: '#FFC107',
+                    below: '#FF9800',
+                    poor: '#F44336',
+                }
+            }
+        }
+    };
+    </script>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+    <!-- @COMPONENT: AppHeader [navigation, user controls] -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-map-marked-alt text-primary text-2xl"></i>
+                        <h1 class="text-xl font-semibold text-gray-900">State Rater</h1>
+                    </div>
+                    <nav class="hidden md:flex space-x-8 ml-8">
+                        <button data-view="map" class="nav-btn text-primary border-b-2 border-primary px-1 pb-2 text-sm font-medium">
+                            <i class="fas fa-map mr-2"></i>Map View
+                        </button>
+                        <button data-view="table" class="nav-btn text-gray-500 hover:text-gray-700 px-1 pb-2 text-sm font-medium">
+                            <i class="fas fa-table mr-2"></i>Table View
+                        </button>
+                        <button data-view="criteria" class="nav-btn text-gray-500 hover:text-gray-700 px-1 pb-2 text-sm font-medium">
+                            <i class="fas fa-cog mr-2"></i>Criteria
+                        </button>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-gray-700" title="Export Data">
+                        <i class="fas fa-download text-lg"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-gray-700" title="Import Data">
+                        <i class="fas fa-upload text-lg"></i>
+                    </button>
+                    <div class="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-1">
+                        <i class="fas fa-users text-gray-600 text-sm"></i>
+                        <span class="text-sm text-gray-700" data-mock="true">You & Wife</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: AppHeader -->
+
+    <!-- @COMPONENT: MainContent [dynamic view container] -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Map View -->
+        <div id="mapView" class="view-content">
+            <div class="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">United States Rating Map</h2>
+                    <p class="text-gray-600">Click on any state to view detailed ratings and add your scores</p>
+                </div>
+                
+                <!-- Rating Legend -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Rating Scale</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-excellent rounded"></div>
+                            <span class="text-sm">Excellent (9-10)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-good rounded"></div>
+                            <span class="text-sm">Good (7-8)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-average rounded"></div>
+                            <span class="text-sm">Average (5-6)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-below rounded"></div>
+                            <span class="text-sm">Below Avg (3-4)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-poor rounded"></div>
+                            <span class="text-sm">Poor (1-2)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-gray-200 rounded border-2 border-dashed border-gray-400"></div>
+                            <span class="text-sm">Not Rated</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive US Map Container -->
+            <div class="bg-white rounded-xl shadow-lg border p-6 mb-6">
+                <div class="relative">
+                    <!-- @FUNCTIONALITY: This should implement interactive US map using D3.js or similar library -->
+                    <div class="w-full h-96 lg:h-[500px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-map text-6xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-500 text-lg font-medium">Interactive US Map</p>
+                            <p class="text-gray-400 text-sm mt-2"><!-- CUSTOM IMPLEMENTATION: Integrate D3.js US map with state click handlers --></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Controls -->
+                    <div class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-2 space-y-2">
+                        <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded" title="Zoom In">
+                            <i class="fas fa-plus text-gray-600"></i>
+                        </button>
+                        <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded" title="Zoom Out">
+                            <i class="fas fa-minus text-gray-600"></i>
+                        </button>
+                        <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded" title="Reset View">
+                            <i class="fas fa-home text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-lg shadow-sm p-4 border">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gray-900" data-bind="stats.totalRated" data-mock="true">23</div>
+                        <div class="text-sm text-gray-500">States Rated</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-4 border">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-excellent" data-bind="stats.avgScore" data-mock="true">7.2</div>
+                        <div class="text-sm text-gray-500">Average Score</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-4 border">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary" data-bind="stats.criteriaCount" data-mock="true">5</div>
+                        <div class="text-sm text-gray-500">Active Criteria</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-4 border">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gray-900" data-bind="stats.completionRate" data-mock="true">46%</div>
+                        <div class="text-sm text-gray-500">Completion Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="tableView" class="view-content hidden">
+            <div class="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">State Ratings Table</h2>
+                    <p class="text-gray-600">Comprehensive view of all state ratings across your custom criteria</p>
+                </div>
+                
+                <!-- Table Controls -->
+                <div class="flex flex-wrap gap-3">
+                    <div class="relative">
+                        <input type="text" placeholder="Search states..." 
+                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option>Sort by Overall Score</option>
+                        <option data-mock="true">Sort by Cost of Living</option>
+                        <option data-mock="true">Sort by Weather</option>
+                        <option data-mock="true">Sort by Job Market</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Ratings Table -->
+            <div class="bg-white rounded-xl shadow-lg border overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overall Score</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-mock="true">Cost of Living</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-mock="true">Weather</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-mock="true">Job Market</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-mock="true">Recreation</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-mock="true">Culture</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- @MAP: states.map(state => ( -->
+                            <tr class="hover:bg-gray-50" data-mock="true">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">California</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-lg font-semibold text-excellent">8.4</div>
+                                        <div class="ml-2 flex">
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">3/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-primary hover:text-blue-900 mr-3">Edit</button>
+                                    <button class="text-gray-400 hover:text-gray-600">View</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50" data-mock="true">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">Texas</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-lg font-semibold text-good">7.6</div>
+                                        <div class="ml-2 flex">
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="far fa-star text-gray-300 text-xs"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">7/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">6/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-primary hover:text-blue-900 mr-3">Edit</button>
+                                    <button class="text-gray-400 hover:text-gray-600">View</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50" data-mock="true">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">New York</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-lg font-semibold text-average">6.2</div>
+                                        <div class="ml-2 flex">
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            <i class="far fa-star text-gray-300 text-xs"></i>
+                                            <i class="far fa-star text-gray-300 text-xs"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">5/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">7/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8/10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-primary hover:text-blue-900 mr-3">Edit</button>
+                                    <button class="text-gray-400 hover:text-gray-600">View</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50" data-mock="true">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-400">Florida</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-lg font-semibold text-gray-400">--</div>
+                                        <div class="ml-2 text-xs text-gray-400">Not Rated</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">--</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">--</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">--</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">--</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">--</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-primary hover:text-blue-900 mr-3">Rate Now</button>
+                                    <button class="text-gray-400 hover:text-gray-600">View</button>
+                                </td>
+                            </tr>
+                            <!-- @END_MAP )) -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</button>
+                            <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</button>
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Showing <span class="font-medium" data-mock="true">1</span> to <span class="font-medium" data-mock="true">10</span> of <span class="font-medium" data-mock="true">50</span> states
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button class="bg-primary border-primary text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</button>
+                                    <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</button>
+                                    <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</button>
+                                    <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Criteria Management View -->
+        <div id="criteriaView" class="view-content hidden">
+            <div class="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Rating Criteria Management</h2>
+                    <p class="text-gray-600">Customize the criteria you use to evaluate and compare states</p>
+                </div>
+                
+                <button class="inline-flex items-center px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add New Criterion
+                </button>
+            </div>
+
+            <!-- Active Criteria -->
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                <!-- @MAP: criteria.map(criterion => ( -->
+                <div class="bg-white rounded-lg shadow-sm border p-6" data-mock="true">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Cost of Living</h3>
+                            <p class="text-sm text-gray-500 mt-1">Housing, utilities, taxes, and general expenses</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="text-gray-400 hover:text-gray-600" title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button class="text-red-400 hover:text-red-600" title="Delete">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Weight:</span>
+                            <span class="text-sm font-medium text-gray-900">High (25%)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">States Rated:</span>
+                            <span class="text-sm font-medium text-gray-900">23/50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Avg Score:</span>
+                            <span class="text-sm font-medium text-gray-900">6.2/10</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button class="text-primary hover:text-blue-700 text-sm font-medium">View State Ratings →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6" data-mock="true">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Weather & Climate</h3>
+                            <p class="text-sm text-gray-500 mt-1">Temperature, precipitation, seasonal variation</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="text-gray-400 hover:text-gray-600" title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button class="text-red-400 hover:text-red-600" title="Delete">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Weight:</span>
+                            <span class="text-sm font-medium text-gray-900">Medium (20%)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">States Rated:</span>
+                            <span class="text-sm font-medium text-gray-900">19/50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Avg Score:</span>
+                            <span class="text-sm font-medium text-gray-900">7.4/10</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button class="text-primary hover:text-blue-700 text-sm font-medium">View State Ratings →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6" data-mock="true">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Job Market</h3>
+                            <p class="text-sm text-gray-500 mt-1">Employment opportunities, salary levels, growth</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="text-gray-400 hover:text-gray-600" title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button class="text-red-400 hover:text-red-600" title="Delete">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Weight:</span>
+                            <span class="text-sm font-medium text-gray-900">High (25%)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">States Rated:</span>
+                            <span class="text-sm font-medium text-gray-900">21/50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Avg Score:</span>
+                            <span class="text-sm font-medium text-gray-900">6.8/10</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button class="text-primary hover:text-blue-700 text-sm font-medium">View State Ratings →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6" data-mock="true">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Recreation & Outdoors</h3>
+                            <p class="text-sm text-gray-500 mt-1">Parks, hiking, sports, entertainment options</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="text-gray-400 hover:text-gray-600" title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button class="text-red-400 hover:text-red-600" title="Delete">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Weight:</span>
+                            <span class="text-sm font-medium text-gray-900">Medium (15%)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">States Rated:</span>
+                            <span class="text-sm font-medium text-gray-900">18/50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Avg Score:</span>
+                            <span class="text-sm font-medium text-gray-900">7.9/10</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button class="text-primary hover:text-blue-700 text-sm font-medium">View State Ratings →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6" data-mock="true">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Culture & Community</h3>
+                            <p class="text-sm text-gray-500 mt-1">Arts, diversity, social atmosphere, politics</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="text-gray-400 hover:text-gray-600" title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button class="text-red-400 hover:text-red-600" title="Delete">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Weight:</span>
+                            <span class="text-sm font-medium text-gray-900">Medium (15%)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">States Rated:</span>
+                            <span class="text-sm font-medium text-gray-900">20/50</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Avg Score:</span>
+                            <span class="text-sm font-medium text-gray-900">7.1/10</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button class="text-primary hover:text-blue-700 text-sm font-medium">View State Ratings →</button>
+                    </div>
+                </div>
+
+                <!-- Add New Criterion Card -->
+                <div class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center hover:bg-gray-100 cursor-pointer transition-colors">
+                    <i class="fas fa-plus text-3xl text-gray-400 mb-3"></i>
+                    <h3 class="text-lg font-medium text-gray-600 mb-2">Add New Criterion</h3>
+                    <p class="text-sm text-gray-500">Create a custom rating category</p>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <!-- Weighting Overview -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Weighting Distribution</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between" data-mock="true">
+                        <span class="text-sm font-medium text-gray-700">Cost of Living</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 25%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900 w-8">25%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between" data-mock="true">
+                        <span class="text-sm font-medium text-gray-700">Job Market</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 25%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900 w-8">25%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between" data-mock="true">
+                        <span class="text-sm font-medium text-gray-700">Weather & Climate</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 20%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900 w-8">20%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between" data-mock="true">
+                        <span class="text-sm font-medium text-gray-700">Recreation & Outdoors</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900 w-8">15%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between" data-mock="true">
+                        <span class="text-sm font-medium text-gray-700">Culture & Community</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900 w-8">15%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-700">Total Weight</span>
+                    <span class="text-lg font-bold text-primary">100%</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <!-- @END_COMPONENT: MainContent -->
+
+    <!-- @COMPONENT: StateDetailModal [state rating interface] -->
+    <div id="stateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="w-full">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" data-bind="selectedState.name" data-mock="true">California</h3>
+                                <button class="text-gray-400 hover:text-gray-600" onclick="closeModal()">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <!-- Overall Rating -->
+                                <div class="text-center py-4 bg-gray-50 rounded-lg">
+                                    <div class="text-3xl font-bold text-excellent mb-2" data-bind="selectedState.overallScore" data-mock="true">8.4</div>
+                                    <div class="flex justify-center mb-2">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    </div>
+                                    <div class="text-sm text-gray-600">Overall Rating</div>
+                                </div>
+
+                                <!-- Individual Criteria Ratings -->
+                                <!-- @MAP: criteria.map(criterion => ( -->
+                                <div class="border-b border-gray-200 pb-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-medium text-gray-700">Cost of Living</h4>
+                                        <span class="text-sm text-gray-500">Weight: 25%</span>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex space-x-1">
+                                            <button class="w-8 h-8 rounded-full border-2 border-poor bg-poor text-white text-sm font-medium hover:bg-red-600">1</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-poor bg-poor text-white text-sm font-medium hover:bg-red-600">2</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-poor bg-poor text-white text-sm font-medium hover:bg-red-600 ring-2 ring-offset-2 ring-primary">3</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-below hover:bg-below hover:text-white text-gray-400 text-sm font-medium">4</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-below hover:bg-below hover:text-white text-gray-400 text-sm font-medium">5</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-average hover:bg-average hover:text-white text-gray-400 text-sm font-medium">6</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-good hover:bg-good hover:text-white text-gray-400 text-sm font-medium">7</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-good hover:bg-good hover:text-white text-gray-400 text-sm font-medium">8</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-excellent hover:bg-excellent hover:text-white text-gray-400 text-sm font-medium">9</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-excellent hover:bg-excellent hover:text-white text-gray-400 text-sm font-medium">10</button>
+                                        </div>
+                                        <span class="text-sm font-medium text-poor ml-4">3/10</span>
+                                    </div>
+                                </div>
+
+                                <div class="border-b border-gray-200 pb-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-medium text-gray-700">Weather & Climate</h4>
+                                        <span class="text-sm text-gray-500">Weight: 20%</span>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex space-x-1">
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-poor hover:bg-poor hover:text-white text-gray-400 text-sm font-medium">1</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-poor hover:bg-poor hover:text-white text-gray-400 text-sm font-medium">2</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-poor hover:bg-poor hover:text-white text-gray-400 text-sm font-medium">3</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-below hover:bg-below hover:text-white text-gray-400 text-sm font-medium">4</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-below hover:bg-below hover:text-white text-gray-400 text-sm font-medium">5</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-average hover:bg-average hover:text-white text-gray-400 text-sm font-medium">6</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-good hover:bg-good hover:text-white text-gray-400 text-sm font-medium">7</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-good hover:bg-good hover:text-white text-gray-400 text-sm font-medium">8</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-excellent bg-excellent text-white text-sm font-medium hover:bg-green-600 ring-2 ring-offset-2 ring-primary">9</button>
+                                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-excellent hover:bg-excellent hover:text-white text-gray-400 text-sm font-medium">10</button>
+                                        </div>
+                                        <span class="text-sm font-medium text-excellent ml-4">9/10</span>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+
+                                <!-- Notes Section -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                                    <textarea class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" rows="3" placeholder="Add any additional notes about this state..." data-mock="true">Love the weather and outdoor activities, but housing costs are really challenging for our budget.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm" data-event="click:saveRating">
+                        Save Rating
+                    </button>
+                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: StateDetailModal -->
+
+    <script>
+    (function() {
+        // @STATE: activeView:string = 'map'
+        // @STATE: selectedState:object = null
+        
+        // Navigation handling
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const viewContents = document.querySelectorAll('.view-content');
+        
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetView = this.getAttribute('data-view');
+                
+                // Update navigation state
+                navButtons.forEach(navBtn => {
+                    navBtn.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                    navBtn.classList.add('text-gray-500', 'hover:text-gray-700');
+                });
+                
+                this.classList.remove('text-gray-500', 'hover:text-gray-700');
+                this.classList.add('text-primary', 'border-b-2', 'border-primary');
+                
+                // Update content visibility
+                viewContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                document.getElementById(targetView + 'View').classList.remove('hidden');
+                
+                // TODO: Update URL state and implement proper routing
+            });
+        });
+        
+        // Modal handling
+        window.closeModal = function() {
+            document.getElementById('stateModal').classList.add('hidden');
+        };
+        
+        // Simulate state click on map (would be implemented with actual map library)
+        // TODO: Implement actual map click handlers with D3.js or similar
+        
+        // Rating button interactions
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('.w-8.h-8.rounded-full')) {
+                const ratingContainer = e.target.closest('.flex.space-x-1');
+                const buttons = ratingContainer.querySelectorAll('button');
+                const rating = Array.from(buttons).indexOf(e.target) + 1;
+                
+                // Clear previous selections
+                buttons.forEach(btn => {
+                    btn.classList.remove('ring-2', 'ring-offset-2', 'ring-primary');
+                    btn.classList.add('border-2', 'border-gray-300', 'text-gray-400');
+                    btn.classList.remove('bg-poor', 'bg-below', 'bg-average', 'bg-good', 'bg-excellent');
+                    btn.classList.remove('text-white');
+                });
+                
+                // Set selected rating
+                e.target.classList.add('ring-2', 'ring-offset-2', 'ring-primary');
+                
+                // Color based on rating
+                if (rating <= 2) {
+                    e.target.classList.add('bg-poor', 'text-white', 'border-poor');
+                } else if (rating <= 4) {
+                    e.target.classList.add('bg-below', 'text-white', 'border-below');
+                } else if (rating <= 6) {
+                    e.target.classList.add('bg-average', 'text-white', 'border-average');
+                } else if (rating <= 8) {
+                    e.target.classList.add('bg-good', 'text-white', 'border-good');
+                } else {
+                    e.target.classList.add('bg-excellent', 'text-white', 'border-excellent');
+                }
+                
+                // Update displayed score
+                const scoreDisplay = ratingContainer.parentElement.querySelector('.ml-4');
+                if (scoreDisplay) {
+                    scoreDisplay.textContent = rating + '/10';
+                    scoreDisplay.className = 'text-sm font-medium ml-4';
+                    if (rating <= 2) scoreDisplay.classList.add('text-poor');
+                    else if (rating <= 4) scoreDisplay.classList.add('text-below');
+                    else if (rating <= 6) scoreDisplay.classList.add('text-average');
+                    else if (rating <= 8) scoreDisplay.classList.add('text-good');
+                    else scoreDisplay.classList.add('text-excellent');
+                }
+                
+                // TODO: Update localStorage with new rating
+                // TODO: Recalculate overall state score
+                // TODO: Update map colors
+            }
+        });
+        
+        // Demo: Open modal when clicking "Edit" or "Rate Now" buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.textContent === 'Edit' || e.target.textContent === 'Rate Now') {
+                document.getElementById('stateModal').classList.remove('hidden');
+                e.preventDefault();
+            }
+        });
+        
+        // TODO: Implement localStorage persistence
+        // TODO: Implement export/import functionality
+        // TODO: Implement actual map integration with state boundaries
+        // TODO: Add form validation for criteria management
+        // TODO: Implement collaborative features for multiple users
+        
+    })();
+    </script>
+</body>
+</html>
