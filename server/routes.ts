@@ -1,10 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { FirestoreStorage } from "./firestore-storage";
+import { storage } from "./storage";
 import { authenticateUser, optionalAuth, AuthenticatedRequest } from "./middleware/auth";
 import { insertCriterionSchema, insertRatingSchema, insertUserSchema } from "@shared/schema";
-
-const storage = new FirestoreStorage();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes - authenticated
@@ -54,11 +52,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/criteria/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
+      // First check if the criterion belongs to the user
+      const existingCriterion = await storage.getCriterion(req.params.id);
+      if (!existingCriterion || existingCriterion.userId !== req.user!.uid) {
+        return res.status(404).json({ error: "Criterion not found" });
+      }
+      
       const updates = insertCriterionSchema.omit({ userId: true }).partial().parse(req.body);
-      const criterion = await storage.updateCriterion(req.params.id, {
-        ...updates,
-        userId: req.user!.uid,
-      });
+      const criterion = await storage.updateCriterion(req.params.id, updates);
       if (!criterion) {
         return res.status(404).json({ error: "Criterion not found" });
       }
@@ -70,6 +71,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/criteria/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
+      // First check if the criterion belongs to the user
+      const existingCriterion = await storage.getCriterion(req.params.id);
+      if (!existingCriterion || existingCriterion.userId !== req.user!.uid) {
+        return res.status(404).json({ error: "Criterion not found" });
+      }
+      
       const deleted = await storage.deleteCriterion(req.params.id);
       if (!deleted) {
         return res.status(404).json({ error: "Criterion not found" });

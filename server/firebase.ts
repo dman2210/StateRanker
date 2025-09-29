@@ -1,16 +1,26 @@
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK with basic configuration
+// For development on Replit, we'll use a simpler approach
 if (!admin.apps.length) {
-  // For Replit, we can use the same project ID from environment variables
-  // In production, you would typically use a service account key file
-  admin.initializeApp({
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-  });
+  try {
+    // Initialize with minimal configuration
+    // This will only work for token verification, not Firestore operations
+    admin.initializeApp({
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+      // For Replit development, we'll skip the service account for now
+    });
+    console.log('Firebase Admin initialized for project:', process.env.VITE_FIREBASE_PROJECT_ID);
+  } catch (error) {
+    console.error('Firebase Admin initialization error:', error);
+  }
 }
 
-// Get Firestore instance
-export const db = admin.firestore();
+// Get auth instance (this should work for token verification)
 export const auth = admin.auth();
+
+// Note: Firestore operations may not work without proper credentials
+// For now, we'll skip Firestore and use a simpler storage approach
+export const db = null; // Disable Firestore for now
 
 export default admin;

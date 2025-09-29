@@ -9,6 +9,7 @@ export interface IStorage {
 
   getCriterion(id: string): Promise<Criterion | undefined>;
   getAllCriteria(): Promise<Criterion[]>;
+  getCriteriaByUser(userId: string): Promise<Criterion[]>;
   createCriterion(criterion: InsertCriterion): Promise<Criterion>;
   updateCriterion(id: string, updates: Partial<InsertCriterion>): Promise<Criterion | undefined>;
   deleteCriterion(id: string): Promise<boolean>;
@@ -47,12 +48,12 @@ export class MemStorage implements IStorage {
     this.users.set(user1.id, user1);
     this.users.set(user2.id, user2);
 
-    // Initialize default criteria
+    // Initialize default criteria for the default user
     const defaultCriteria = [
-      { name: "Cost of Living", weight: 1.0, color: "#1976D2", isActive: true },
-      { name: "Climate", weight: 1.5, color: "#DC004E", isActive: true },
-      { name: "Job Market", weight: 2.0, color: "#388E3C", isActive: true },
-      { name: "Culture & Entertainment", weight: 1.0, color: "#F57C00", isActive: true },
+      { name: "Cost of Living", weight: 1.0, color: "#1976D2", isActive: true, userId: user1.id },
+      { name: "Climate", weight: 1.5, color: "#DC004E", isActive: true, userId: user1.id },
+      { name: "Job Market", weight: 2.0, color: "#388E3C", isActive: true, userId: user1.id },
+      { name: "Culture & Entertainment", weight: 1.0, color: "#F57C00", isActive: true, userId: user1.id },
     ];
 
     defaultCriteria.forEach(criterion => {
@@ -147,9 +148,18 @@ export class MemStorage implements IStorage {
     return Array.from(this.criteria.values()).filter(c => c.isActive);
   }
 
+  async getCriteriaByUser(userId: string): Promise<Criterion[]> {
+    return Array.from(this.criteria.values()).filter(c => c.isActive && c.userId === userId);
+  }
+
   async createCriterion(insertCriterion: InsertCriterion): Promise<Criterion> {
     const id = randomUUID();
-    const criterion: Criterion = { ...insertCriterion, id };
+    const criterion: Criterion = { 
+      ...insertCriterion, 
+      id,
+      weight: insertCriterion.weight ?? 1.0,
+      isActive: insertCriterion.isActive ?? true,
+    };
     this.criteria.set(id, criterion);
     return criterion;
   }
@@ -202,7 +212,11 @@ export class MemStorage implements IStorage {
 
   async createRating(insertRating: InsertRating): Promise<Rating> {
     const id = randomUUID();
-    const rating: Rating = { ...insertRating, id };
+    const rating: Rating = { 
+      ...insertRating, 
+      id,
+      notes: insertRating.notes ?? null,
+    };
     this.ratings.set(id, rating);
     return rating;
   }
