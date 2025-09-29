@@ -161,11 +161,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/ratings/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
+      // First check if the rating belongs to the user
+      const existingRating = await storage.getRatingById(req.params.id);
+      if (!existingRating || existingRating.userId !== req.user!.uid) {
+        return res.status(404).json({ error: "Rating not found" });
+      }
+      
       const updates = insertRatingSchema.omit({ userId: true }).partial().parse(req.body);
-      const rating = await storage.updateRating(req.params.id, {
-        ...updates,
-        userId: req.user!.uid,
-      });
+      const rating = await storage.updateRating(req.params.id, updates);
       if (!rating) {
         return res.status(404).json({ error: "Rating not found" });
       }
@@ -177,6 +180,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/ratings/:id", authenticateUser, async (req: AuthenticatedRequest, res) => {
     try {
+      // First check if the rating belongs to the user
+      const existingRating = await storage.getRatingById(req.params.id);
+      if (!existingRating || existingRating.userId !== req.user!.uid) {
+        return res.status(404).json({ error: "Rating not found" });
+      }
+      
       const deleted = await storage.deleteRating(req.params.id);
       if (!deleted) {
         return res.status(404).json({ error: "Rating not found" });

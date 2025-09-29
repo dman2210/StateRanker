@@ -19,6 +19,7 @@ export interface IStorage {
   createState(state: InsertState): Promise<State>;
 
   getRating(userId: string, stateCode: string, criterionId: string): Promise<Rating | undefined>;
+  getRatingById(id: string): Promise<Rating | undefined>;
   getRatingsByUser(userId: string): Promise<Rating[]>;
   getRatingsByState(stateCode: string): Promise<Rating[]>;
   getAllRatings(): Promise<Rating[]>;
@@ -196,6 +197,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.ratings.values()).find(
       rating => rating.userId === userId && rating.stateCode === stateCode && rating.criterionId === criterionId
     );
+  }
+
+  async getRatingById(id: string): Promise<Rating | undefined> {
+    return this.ratings.get(id);
   }
 
   async getRatingsByUser(userId: string): Promise<Rating[]> {
