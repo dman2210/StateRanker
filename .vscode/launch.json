@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+            {
+      "type": "chrome", // or "edge", depending on your browser
+      "request": "launch",
+      "name": "Launch Vite Frontend",
+      "url": "http://localhost:5173", // Replace with your Vite dev server URL
+      "webRoot": "${workspaceFolder}/src", // Adjust to your frontend source directory
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${webRoot}/*" // Adjust if using different source map paths
+      }
+    }
+    ]
+}
